@@ -26,8 +26,8 @@ DEFAULT_DATA_QUALITY_RULESET = """
     ]
 """
 
-# Script generated for node accelerometer_landing
-accelerometer_landing_node1745312916301 = glueContext.create_dynamic_frame.from_catalog(database="finaldatabase", table_name="accelerometer_landing", transformation_ctx="accelerometer_landing_node1745312916301")
+# Script generated for node accelerometer_trusted
+accelerometer_trusted_node1745312916301 = glueContext.create_dynamic_frame.from_catalog(database="finaldatabase", table_name="accelerometer_trusted", transformation_ctx="accelerometer_trusted_node1745312916301")
 
 # Script generated for node customer_trusted
 customer_trusted_node1745312877151 = glueContext.create_dynamic_frame.from_catalog(database="finaldatabase", table_name="customer_trusted", transformation_ctx="customer_trusted_node1745312877151")
@@ -48,7 +48,7 @@ from customer c
 join accelerometer a
 on c.email = a.user
 '''
-SQLQuery_node1745312941520 = sparkSqlQuery(glueContext, query = SqlQuery0, mapping = {"customer":customer_trusted_node1745312877151, "accelerometer":accelerometer_landing_node1745312916301}, transformation_ctx = "SQLQuery_node1745312941520")
+SQLQuery_node1745312941520 = sparkSqlQuery(glueContext, query = SqlQuery0, mapping = {"customer":customer_trusted_node1745312877151, "accelerometer":accelerometer_trusted_node1745312916301}, transformation_ctx = "SQLQuery_node1745312941520")
 
 # Script generated for node Amazon S3
 EvaluateDataQuality().process_rows(frame=SQLQuery_node1745312941520, ruleset=DEFAULT_DATA_QUALITY_RULESET, publishing_options={"dataQualityEvaluationContext": "EvaluateDataQuality_node1745313424599", "enableDataQualityResultsPublishing": True}, additional_options={"dataQualityResultsPublishing.strategy": "BEST_EFFORT", "observations.scope": "ALL"})
