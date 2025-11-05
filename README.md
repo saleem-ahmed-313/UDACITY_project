@@ -1,71 +1,46 @@
-# 🌊 IoT Data Lake Curation on AWS Glue
+# 📊 IoT Data Lake & ML Curation Pipeline
 
-[![Project Stage](https://img.shields.io/badge/Status-Complete-success)]()
-[![Tech Stack](https://img.shields.io/badge/Platform-AWS_Glue_%26_S3-orange?logo=amazon-aws)]()
-[![Data Focus](https://img.shields.io/badge/Data-IoT_Telemetry-blue)]()
-
----
-
-## 🎯 Project Goal
-
-The main objective of this project was to build a simple, serverless **Data Lake** on AWS (using **S3** and **Glue**) to process raw **IoT device data** (Accelerometer, Step Trainer) and **Customer records**.
-
-We needed to clean up and combine this data to create a high-quality dataset specifically for a **Machine Learning (ML)** team.
-
-The pipeline ensures we only use data from customers who have explicitly agreed to share their information.
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![AWS](https://img.shields.io/badge/Tech-AWS_Glue-orange?style=flat&logo=amazon-aws)](https://aws.amazon.com/glue/)
+[![Data-Lake](https://img.shields.io/badge/Zone-Curated_Data-informational)](https://en.wikipedia.org/wiki/Data_lake)
 
 ---
 
-## 🏗️ Data Lake Architecture & Flow
+## 🌟 Project Overview
 
-We followed the standard Data Lake practice of dividing our S3 storage into three key zones.
+This project implements a **serverless Data Lake ETL (Extract, Transform, Load) pipeline** on AWS. It is designed to process and curate data from various Internet of Things (IoT) devices and customer records, specifically focusing on **Customer, Accelerometer, and Step Trainer** data.
 
-| Zone | Purpose | Key Action |
+The primary goal is to **sanitize, transform, and aggregate** the data through distinct Data Lake zones (**Landing, Trusted, and Curated**) to produce a high-quality, joined dataset optimized for downstream machine learning (ML) consumption.
+
+---
+
+## 🔑 Key Features
+
+* **Data Ingestion & Schema Definition**: Defines initial Glue Tables (`customer_landing`, `accelerometer_landing`, `step_trainer_landing`) using provided SQL scripts.
+* **Customer Sanitization**: A Glue job filters and promotes only customers who have **agreed to share their data** and possess associated accelerometer records to the **Curated Zone** (`customers_curated`).
+* **Trusted Zone Filtering**: Creates a **Trusted Zone** table (`step_trainer_trusted`) containing Step Trainer records specifically for the vetted customers.
+* **ML Data Aggregation**: The final Glue job joins the `Step Trainer` data with corresponding `Accelerometer` data based on timestamp, creating the final **Machine Learning Curated** table (`machine_learning_curated`).
+* **Serverless & Scalable**: Leverages AWS Glue and S3 for a fully managed, scalable, and cost-efficient architecture.
+
+---
+
+## 🏗️ Architecture & Data Flow
+
+The pipeline processes data sequentially across three key Data Lake zones:
+
+| Zone | Primary Table(s) | Purpose |
 | :--- | :--- | :--- |
-| **Landing** | Stores raw, untouched data (initial upload). | Define schemas (e.g., `customer_landing`). |
-| **Trusted** | Contains clean, filtered, and quality-checked data. | Filter out non-consenting customers (`step_trainer_trusted`). |
-| **Curated** | Final, aggregated, and optimized data ready for analysis/ML. | Combine different data sources for ML (`machine_learning_curated`). |
+| **Landing** | `customer_landing`, `accelerometer_landing`, `step_trainer_landing` | Raw, un-modified source data. |
+| **Trusted** | `step_trainer_trusted` | Cleansed, standardized, and partitioned data. |
+| **Curated** | `customers_curated`, `machine_learning_curated` | Aggregated, business-ready data for ML. |
 
-### **The Three Main ETL Steps (AWS Glue Jobs)**
+### ETL Job Summary
 
-These jobs transform the data progressively, moving it from the Landing Zone all the way to the Curated Zone.
-
-1.  **Customer Sanity Check (`Customer_curated_job`)**
-    * **Goal:** Create a clean list of customers.
-    * **Action:** Filters the raw customer data to only include customers who have both **agreed to share data** *AND* have associated **Accelerometer data**. The result is stored in the `customers_curated` table.
-
-2.  **Step Trainer Filtering (`Steptrainer_trusted_job`)**
-    * **Goal:** Clean the Step Trainer data.
-    * **Action:** Uses the clean list from Step 1 (`customers_curated`) to filter the raw Step Trainer data. This ensures the `step_trainer_trusted` table only contains records for known, consenting users.
-
-3.  **ML Data Aggregation (`Machinelearning_curated_job`)**
-    * **Goal:** Create the final, usable ML dataset.
-    * **Action:** **Joins** the clean Step Trainer data with the corresponding Accelerometer data using the `timestamp` as the key. This final, joined dataset is saved as the **`machine_learning_curated`** table.
+| Job Name | Source(s) | Target Table |
+| :--- | :--- | :--- |
+| **Customer Curated** | `customer_trusted`, `accelerometer_landing` | `customers_curated` |
+| **Step Trainer Trusted** | `step_trainer_landing`, `customers_curated` | `step_trainer_trusted` |
+| **ML Aggregation** | `step_trainer_trusted`, `accelerometer_trusted` | `machine_learning_curated` |
 
 ---
 
-## 💻 Setup & Running the Project
-
-### Prerequisites
-
-You need a working AWS environment with permissions for:
-* **AWS S3** (for data storage)
-* **AWS Glue** (for ETL jobs and the Data Catalog)
-* **Amazon Athena** (for testing and querying)
-
-### Steps to Replicate
-
-1.  **S3 Buckets:** Set up your S3 buckets. The current configuration uses the bucket path `s3://finalprojectsaleem/`. Make sure your data files (Customer, Accelerometer, Step Trainer) are uploaded to the respective **`/landing/`** paths.
-2.  **Database & Tables:** Use the provided SQL scripts (e.g., `customer_landing.sql`) in **Amazon Athena** or set up **Glue Crawlers** to create the initial tables in the `finaldatabase` schema.
-3.  **Upload Glue Scripts:** Upload the Python (`.py`) scripts for the three Glue jobs to your designated S3 script location.
-4.  **Run Jobs:** Execute the three AWS Glue jobs in the correct order (1, 2, then 3) to process the data and populate the Trusted and Curated zones.
-
-### Final Output
-
-After the jobs run, you can query the final, clean dataset in Athena:
-
-```sql
--- Query the final dataset for the ML team
-SELECT *
-FROM finaldatabase.machine_learning_curated
-LIMIT 50;
