@@ -43,4 +43,11 @@ The pipeline processes data sequentially across three key Data Lake zones:
 | **ML Aggregation** | `step_trainer_trusted`, `accelerometer_trusted` | `machine_learning_curated` |
 
 ---
+## 🛠️ Technology Stack
+
+* **Cloud Platform:** Amazon Web Services (AWS)
+* **ETL/Data Processing:** AWS Glue
+* **Storage:** Amazon S3
+* **Querying:** Amazon Athena
+* **Language:** SQL and Python (within Glue)
 
